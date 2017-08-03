@@ -1,0 +1,326 @@
+exemploS 
+1 - for
+declare var_name INTEGER;
+begin
+var_name:=0;
+for var_name in 1..10 loop
+DBMS_OUTPUT.PUT_LINE('teste '||to_char(var_name));
+end loop;
+end;
+exemplo while
+declare var_name INTEGER;
+begin
+var_name:=0;
+while var_name <=10 loop
+DBMS_OUTPUT.PUT_LINE('teste '||to_char(var_name));
+var_name:= var_name+1;
+end loop;
+end;
+
+2 - if
+
+declare var_name INTEGER;
+begin
+var_name:=0;
+while var_name <=10 loop
+DBMS_OUTPUT.PUT_LINE('teste '||to_char(var_name));
+if var_name / 2 <>0 then
+DBMS_OUTPUT.PUT_LINE('o numero '||to_char(var_name)||' e primo');
+ELSIF var_name / 2 =0 then
+DBMS_OUTPUT.PUT_LINE('o numero '||to_char(var_name)||' não e primo');
+end if;
+var_name:= var_name+1;
+end loop;
+end;
+
+usar funções
+2 potencia
+declare var_name INTEGER;
+        x INTEGER;
+begin
+var_name:=0;
+x:=0;
+while x <=10 loop
+var_name:=power(x,x);
+DBMS_OUTPUT.PUT_LINE('teste '||to_char(x)||' '||to_char(var_name));
+x:=x+1;
+end loop;
+end;
+
+3 - sqrt
+declare var_name INTEGER;
+        x INTEGER;
+begin
+var_name:=0;
+x:=0;
+while x <=10 loop
+var_name:=sqrt(x);
+DBMS_OUTPUT.PUT_LINE('teste '||to_char(x)||' '||to_char(var_name));
+x:=x+1;
+end loop;
+end;
+
+CURSORES
+1 - COM PARAMETROS
+create or replace PROCEDURE CURSOR1(opt in employees.job_ID%type)
+is 
+e_first_name employees.first_name%type;
+e_last_name employees.last_name%type;
+e_phone_number employees.phone_number%type;
+e_hire_date employees.hire_date%type;
+e_job_id employees.job_id%type;
+e_commission_pct employees.commission_pct%type;
+e_manager_id employees.manager_id%type;
+e_dept employees.department_id%type;
+e_sal employees.salary%type;
+
+cursor mostra30 is 
+select first_name,last_name,phone_number, hire_date, job_id, 
+commission_pct , manager_id,department_id,salary 
+FROM employees where job_id= upper(opt);
+
+BEGIN
+  dbms_output.enable;
+  open mostra30;
+  loop
+  /*as variaveis do fetch tem de ser na ordem de campos do select do cursor */
+  FETCH mostra30 into  e_first_name,e_last_name, e_phone_number, e_hire_date, 
+  e_job_id,e_commission_pct , e_manager_id,e_dept,e_sal;
+  exit when mostra30%notfound;
+  dbms_output.put_line(e_first_name|| ' - ' || to_char(e_dept)||' - ' ||to_char(e_sal));
+  end loop;
+  close mostra30;
+END ;
+
+
+
+declare
+ v_arquivo utl_file.file_type;
+ begin
+ v_arquivo := utl_file.fopen('/tmp', 'arq_teste.txt', 'W');
+ utl_file.put_line(v_arquivo, 'linha 1');
+ utl_file.put_line(v_arquivo, 'linha 2');
+ utl_file.put_line(v_arquivo, 'linha 3');
+ utl_file.put_line(v_arquivo, 'linha 4');
+ utl_file.put_line(v_arquivo, 'linha 5');
+ utl_file.fclose(v_arquivo);
+ exception
+ when utl_file.invalid_path then
+ raise_application_error(-20000, 'Atenção! O caminho informado não existe.');
+ end;
+ /
+
+bloco anonimo1
+set serveroutput on 
+declare
+e_first_name employees.first_name%type;
+e_last_name employees.last_name%type;
+begin
+
+select first_name,last_name 
+into
+e_first_name,e_last_name
+from employees
+where employee_id=121;
+
+dbms_output.put_line('primeiro nome ' || e_first_name);
+dbms_output.put_line('segundo nome ' || e_last_name);
+exception
+
+when others then
+dbms_output.put_line('erro when others geral');
+
+dbms_output.put_line('O erro foi: ' || to_char(sqlcode) || ' - ' || sqlerrm);
+
+dbms_output.put_line('fim  ' || to_char(sysdate,'dd/mm/yyyy hh24:mi:ss'));
+
+end;
+---------------
+procedure 2
+set serveroutput on  
+ 
+create or replace procedure pr_select_funcionario is 
+
+e_employee_id employees.employee_id%type; 
+e_first_name employees.first_name%type;
+e_last_name employees.last_name%type; 
+--pega o codigo do erro 
+wl_sqlcode            number; 
+--pega o texto do erro
+wl_sqlerrm            varchar2(150); 
+--declara uma excessão 
+exception_cancela        exception; 
+ 
+begin 
+--declara inicio da procedure 
+dbms_output.put_line('inicio pr_select ' || to_char(sysdate,'dd/mm/yyyy hh24:mi:ss')); 
+ 
+--faz a consulta e coloca nas variaveis 
+begin 
+ 
+select 
+employee_id, 
+first_name,
+last_name 
+into 
+e_employee_id, 
+e_first_name,
+e_last_name 
+from employees 
+where employee_id = 10; 
+--where FUNC_NR_MATRICULA = 99; 
+--where FUNC_NR_MATRICULA > 10; 
+--where FUNC_NR_MATRICULA > 99; 
+--excessao de erro comuns e a excessão mais interna 
+exception 
+--excessao de dados não encontrados ele e o mais interno 
+when no_data_found then 
+dbms_output.put_line('chave inexistente.'); 
+ 
+wl_sqlcode := sqlcode; 
+wl_sqlerrm := sqlerrm; 
+ 
+raise exception_cancela; 
+ 
+when too_many_rows then 
+dbms_output.put_line('foram recuperados varios registros.'); 
+ 
+wl_sqlcode := sqlcode; 
+wl_sqlerrm := sqlerrm; 
+ 
+raise exception_cancela; 
+ 
+when others then 
+dbms_output.put_line('erro when select'); 
+ 
+wl_sqlcode := sqlcode; 
+wl_sqlerrm := sqlerrm; 
+ 
+raise exception_cancela; 
+ 
+end; 
+--fim do begin mais interno
+ 
+dbms_output.put_line('matricula ' || e_employee_id); 
+dbms_output.put_line('Primeiro nome ' || e_first_name); 
+dbms_output.put_line('Segundo nome ' || e_last_name); 
+ 
+dbms_output.put_line('fim pr_select ' || to_char(sysdate,'dd/mm/yyyy hh24:mi:ss')); 
+ 
+--chamada da excessao externa 
+exception 
+ 
+when exception_cancela then 
+dbms_output.put_line('exception_cancela'); 
+ 
+dbms_output.put_line('O erro foi: ' || to_char(wl_sqlcode) || ' - ' || wl_sqlerrm); 
+dbms_output.put_line('O erro foi: ' || wl_sqlcode || ' - ' || wl_sqlerrm); 
+ 
+dbms_output.put_line('fim _pr_select ' || to_char(sysdate,'dd/mm/yyyy hh24:mi:ss')); 
+ 
+when others then 
+dbms_output.put_line('erro when others geral'); 
+ 
+wl_sqlcode := sqlcode; 
+wl_sqlerrm := sqlerrm; 
+ 
+dbms_output.put_line('O erro foi: ' || to_char(wl_sqlcode) || ' - ' || wl_sqlerrm); 
+ 
+dbms_output.put_line('fim exe2_pr_select ' || to_char(sysdate,'dd/mm/yyyy hh24:mi:ss')); 
+ 
+end pr_select_funcionario; 
+ 
+/
+------------------
+procedure 3
+create or replace procedure pr_select_funcionario2(wp_FUNC_NR_MATRICULA    in employees.employee_id%type) is 
+
+e_employee_id employees.employee_id%type; 
+e_first_name employees.first_name%type;
+e_last_name employees.last_name%type; 
+--pega o codigo do erro 
+wl_sqlcode            number; 
+--pega o texto do erro
+wl_sqlerrm            varchar2(150); 
+--declara uma excessão 
+exception_cancela        exception; 
+ 
+begin 
+--declara inicio da procedure 
+dbms_output.put_line('inicio pr_select ' || to_char(sysdate,'dd/mm/yyyy hh24:mi:ss')); 
+ 
+--faz a consulta e coloca nas variaveis 
+begin 
+ 
+select 
+employee_id, 
+first_name,
+last_name 
+into 
+e_employee_id, 
+e_first_name,
+e_last_name 
+from employees 
+where employee_id = wp_FUNC_NR_MATRICULA; 
+--where FUNC_NR_MATRICULA = 99; 
+--where FUNC_NR_MATRICULA > 10; 
+--where FUNC_NR_MATRICULA > 99; 
+--excessao de erro comuns e a excessão mais interna 
+exception 
+--excessao de dados não encontrados ele e o mais interno 
+when no_data_found then 
+dbms_output.put_line('chave inexistente.'); 
+ 
+wl_sqlcode := sqlcode; 
+wl_sqlerrm := sqlerrm; 
+ 
+raise exception_cancela; 
+ 
+when too_many_rows then 
+dbms_output.put_line('foram recuperados varios registros.'); 
+ 
+wl_sqlcode := sqlcode; 
+wl_sqlerrm := sqlerrm; 
+ 
+raise exception_cancela; 
+ 
+when others then 
+dbms_output.put_line('erro when select'); 
+ 
+wl_sqlcode := sqlcode; 
+wl_sqlerrm := sqlerrm; 
+ 
+raise exception_cancela; 
+ 
+end; 
+--fim do begin mais interno
+ 
+dbms_output.put_line('matricula ' || e_employee_id); 
+dbms_output.put_line('Primeiro nome ' || e_first_name); 
+dbms_output.put_line('Segundo nome ' || e_last_name); 
+ 
+dbms_output.put_line('fim pr_select ' || to_char(sysdate,'dd/mm/yyyy hh24:mi:ss')); 
+ 
+--chamada da excessao externa 
+exception 
+ 
+when exception_cancela then 
+dbms_output.put_line('exception_cancela'); 
+ 
+dbms_output.put_line('O erro foi: ' || to_char(wl_sqlcode) || ' - ' || wl_sqlerrm); 
+dbms_output.put_line('O erro foi: ' || wl_sqlcode || ' - ' || wl_sqlerrm); 
+ 
+dbms_output.put_line('fim _pr_select ' || to_char(sysdate,'dd/mm/yyyy hh24:mi:ss')); 
+ 
+when others then 
+dbms_output.put_line('erro when others geral'); 
+ 
+wl_sqlcode := sqlcode; 
+wl_sqlerrm := sqlerrm; 
+ 
+dbms_output.put_line('O erro foi: ' || to_char(wl_sqlcode) || ' - ' || wl_sqlerrm); 
+ 
+dbms_output.put_line('fim exe2_pr_select ' || to_char(sysdate,'dd/mm/yyyy hh24:mi:ss')); 
+ 
+end pr_select_funcionario2; 
+---------------------------
